@@ -56,7 +56,7 @@ XGpio LedGpio; /* The instance for GPIO LED*/
 int main()
 {
     init_platform();
-    int Status;
+    XStatus Status;
     print("Hello World\n\r");
     print("Successfully ran Hello World application");
    // *(uint32_t*)0x41200000 = 0x0u;  //putem aprinde ledurile asa
