@@ -55,6 +55,7 @@ XGpio LedGpio; /* The Instance of the GPIO Driver */
 
 int main()
 {
+	XStatus Status;
     init_platform();
 
     print("Hello World\n\r");
