@@ -48,9 +48,12 @@
 #include <stdio.h>
 #include "platform.h"
 #include "xil_printf.h"
-#include "xgpio.h"
 #include "xparameters.h"
+#include "xgpio.h"
 
+
+XGpio LedGpio; /* The Instance of the GPIO Driver */
+XGpio BtnSwGpio; /* The Instance of the GPIO Driver */
 
 int main()
 {
@@ -59,16 +62,41 @@ int main()
     print("Hello World\n\r");
     print("Successfully ran Hello World application");
 
+   // XStatus Status;
+
    // *((uint32_t*)0x41200000) = 0x0u;
    // *((uint32_t*)0x41200000) = 0xFu;
 
-    Status = XGpio_Initialize(&LedGpio, GPIO_EXAMPLE_DEVICE_ID);
-    if(Status != XST_SUCCESS){
-    	xil_printf("Gpio initialization failed");
-    	return XST_FAILURE;
-    }
+    int Status;
 
-    XGpio_DiscreteWrite(&LedGpio, 1, 0xFF);
+	/* Initialize the GPIO driver */
+	Status = XGpio_Initialize(&LedGpio, XPAR_LED_GPIO_DEVICE_ID);
+	if (Status != XST_SUCCESS) {
+		xil_printf("Gpio Initialization Failed\r\n");
+		return XST_FAILURE;
+	}
+
+	Status = XGpio_Initialize(&BtnSwGpio, XPAR_BTN_SW_GPIO_DEVICE_ID);
+		if (Status != XST_SUCCESS) {
+			xil_printf("Gpio Initialization Failed\r\n");
+			return XST_FAILURE;
+		}
+
+	int buttons, switches;
+
+	while(1){
+		buttons = XGpio_DiscreteRead(&BtnSwGpio, 1);
+		if(!buttons){
+			switches = XGpio_DiscreteRead(&BtnSwGpio, 2);
+			XGpio_DiscreteWrite(&LedGpio, 1, switches);
+		}
+		else{
+			switches = XGpio_DiscreteRead(&BtnSwGpio, 2);
+			XGpio_DiscreteWrite(&LedGpio, 1, ~switches);
+		}
+	}
+
+
 
     cleanup_platform();
     return 0;
