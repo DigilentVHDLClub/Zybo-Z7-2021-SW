@@ -54,6 +54,7 @@
 XGpio LedGpio;
 int main()
 {
+	XStatus Status;
     init_platform();
 
     print("Hello World\n\r");
