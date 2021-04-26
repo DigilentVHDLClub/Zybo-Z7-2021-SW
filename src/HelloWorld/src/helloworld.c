@@ -51,12 +51,12 @@
 #include "xparameters.h"
 #include "xgpio.h"
 
-XGpio LedGpio; /* The instance for GPIO LED*/
+XGpio LedGpio,SwBtnGpio; /* The instance for GPIO LED*/
 
 int main()
 {
     init_platform();
-    XStatus Status;
+    XStatus Status, StatusSwBtn;
     print("Hello World\n\r");
     print("Successfully ran Hello World application");
    // *(uint32_t*)0x41200000 = 0x0u;  //putem aprinde ledurile asa
@@ -69,10 +69,39 @@ int main()
     	return XST_FAILURE;
     }
 
-    /*set led to high*/
-    XGpio_DiscreteWrite(&LedGpio,1,0xFF);
+    StatusSwBtn = XGpio_Initialize(&SwBtnGpio,XPAR_BTN_SW_GPIO_DEVICE_ID);
+    if(StatusSwBtn != XST_SUCCESS)
+       {
+       	xil_printf("GPIO initialization failed\r\n");
+       	return XST_FAILURE;
+       }
+
+    XGpio_SetDataDirection(&SwBtnGpio, 1, 0x00); //setting switches to inputs
+    XGpio_SetDataDirection(&SwBtnGpio, 2, 0x00); //setting buttons to inputs
+
+    u32 switchesdata;
+    u32 btnsdata;
+
+    while (1)
+    {
+    switchesdata= XGpio_DiscreteRead(&SwBtnGpio,1);  //reads data from the switches
+
+    btnsdata= XGpio_DiscreteRead(&SwBtnGpio,2); //reads data from the buttons
+
+   // printf("\n\r %lx", btnsdata);
 
 
+    if(btnsdata == 0 ){     //check if buttons are pressed
+    	XGpio_DiscreteWrite(&LedGpio,1,switchesdata); // if not the switches work normally
+    }
+    else {  //if one button was pressed
+    	switchesdata = ~switchesdata; // the switches will invert their function would be inverted
+    	XGpio_DiscreteWrite(&LedGpio,1,switchesdata); //write the data to the leds
+    }
+
+
+
+    }
 
 
     cleanup_platform();
