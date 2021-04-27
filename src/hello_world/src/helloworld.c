@@ -86,13 +86,13 @@ int main()
 
     while(1){
 
-    	for (i=0; i<= DELAY; i++)
-
+    			for (i=0; i<= DELAY; i++)
+    	{
     		sw = XGpio_DiscreteRead(&BTN_SW_GPIO,2);// read sw
     		btn = XGpio_DiscreteRead(&BTN_SW_GPIO,1);// read btn
     		x = sw ^ btn; // XOR
     		XGpio_DiscreteWrite(&LedGpio, 1, x); // write on LED
-
+    	}
 
     }
 
