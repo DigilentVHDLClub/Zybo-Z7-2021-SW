@@ -16,8 +16,8 @@ set app_name [file tail $script_dir]
 # Variables created by checkin.tcl
 set lang "c"
 set domain "standalone_domain"
-set platform "temp_sw"
-set sysproj "Hello_world_system"
+set platform "hw_pf"
+set sysproj "hello_world_system"
 
 # Handle dependent variables
 if {$lang == "c"} {

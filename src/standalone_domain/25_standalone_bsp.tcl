@@ -14,7 +14,7 @@ set os "standalone"
 set proc "ps7_cortexa9_0"
 
 # Destination platform needs to be made active first
-platform active "temp_sw"
+platform active "hw_pf"
 
 domain create -name $domain_name -proc $proc -arch $arch -os $os
 

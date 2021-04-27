@@ -62,14 +62,14 @@ int main()
     print("Hello World\n\r");
     print("Successfully ran Hello World application\n\r");
 
-    Status = XGpio_Initialize(&LedGpio, XPAR_AXI_GPIO_1_DEVICE_ID);
+    Status = XGpio_Initialize(&LedGpio, XPAR_GPIO_1_DEVICE_ID);
     	if (Status != XST_SUCCESS) {
     		xil_printf("Gpio Initialization Failed\r\n");
     		return XST_FAILURE;
     	}
 
 
-    	XGpio_DiscreteWrite(&LedGpio, 1, 0xFF);
+    	XGpio_DiscreteWrite(&LedGpio, 1, 0x0F);
 
     cleanup_platform();
     return 0;
