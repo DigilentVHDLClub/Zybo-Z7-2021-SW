@@ -51,13 +51,15 @@
 #include "xparameters.h"
 #include "xgpio.h"
 
-XGpio LedGpio; /* The Instance of the GPIO Driver */
+#define DELAY     1000
+XGpio LedGpio, BTN_SW_GPIO; /* The Instance of the GPIO Driver */
 
 
 int main()
 {
-	XStatus Status;
+	XStatus StatusLed, StatusBTN_SW;
     init_platform();
+    int btn, sw, x, i;
 
 
     print("Hello World\n\r");
@@ -67,13 +69,36 @@ int main()
  //   *(uint32_t*)(0x41200000) = 0xFu;
 
   /* Initialize the GPIO driver */
-  	Status = XGpio_Initialize(&LedGpio, XPAR_LED_GPIO_DEVICE_ID);
-    	if (Status != XST_SUCCESS) {
+  	StatusLed = XGpio_Initialize(&LedGpio, XPAR_LED_GPIO_DEVICE_ID);
+    	if (StatusLed != XST_SUCCESS) {
     		xil_printf("Gpio Initialization Failed\r\n");
     		return XST_FAILURE;
     	}
+ /* Initialize the GPIO driver */
+    StatusBTN_SW = XGpio_Initialize(&BTN_SW_GPIO, XPAR_BTN_SW_GPIO_DEVICE_ID);
+       	if (StatusBTN_SW != XST_SUCCESS) {
+      		xil_printf("Gpio Initialization Failed\r\n");
+      		return XST_FAILURE;
+      	}
+
+
+/*Implementing a XOR on SW and BTN*/
+
+    while(1){
+
+    	for (i=0; i<= DELAY; i++)
+
+    		sw = XGpio_DiscreteRead(&BTN_SW_GPIO,2);// read sw
+    		btn = XGpio_DiscreteRead(&BTN_SW_GPIO,1);// read btn
+    		x = sw ^ btn; // XOR
+    		XGpio_DiscreteWrite(&LedGpio, 1, x); // write on LED
+
+
+    }
+
+
 		/* Set the LED to High */
-		XGpio_DiscreteWrite(&LedGpio, 1, 0xFF);
+		//XGpio_DiscreteWrite(&LedGpio, 1, 0xFF);
 
     cleanup_platform();
     return 0;
