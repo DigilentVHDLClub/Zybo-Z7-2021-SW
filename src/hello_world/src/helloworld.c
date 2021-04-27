@@ -56,6 +56,7 @@ XGpio LedGpio; /* The Instance of the GPIO Driver */
 int main()
 {
     init_platform();
+    XStatus Status;
 
     print("Hello World\n\r");
     print("Successfully ran Hello World application");
