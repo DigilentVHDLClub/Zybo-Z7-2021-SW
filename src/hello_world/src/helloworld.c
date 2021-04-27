@@ -47,32 +47,54 @@
 
 #include <stdio.h>
 #include "platform.h"
-#include "xparameters.h" //definitia de adrese
+#include "xparameters.h" //address definition header
 #include "xgpio.h"
 #include "xil_printf.h"
 
 XGpio LedGpio;
+XGpio Btn_Sw_Gpio;
 int main()
 {
+	u32 btn_data, sw_data;
 	XStatus Status;
     init_platform();
 
     print("Hello World\n\r");
     print("Successfully ran Hello World application\n");
 
-    //aprinderea LED-urilor
-//    *(uint32_t*)0x41200000=0x0u; //stingerea led-urilor
-//    *(uint32_t*)0x41200000=0xFu; //aprinderea
 
-    /* Initialize the GPIO driver */
+//    *(uint32_t*)0x41200000=0x0u; // turn ON the LED
+//    *(uint32_t*)0x41200000=0xFu; //turn OFF the LED
+
+    /* Initialize the LED'S GPIO driver */
     	Status = XGpio_Initialize(&LedGpio, XPAR_LED_GPIO_DEVICE_ID);
     	if (Status != XST_SUCCESS) {
     		xil_printf("Gpio Initialization Failed\r\n");
     		return XST_FAILURE;
     	}
 
+    	/* Initialize the BUTTONS and SWITCHES GPIO driver */
+    	Status = XGpio_Initialize(&Btn_Sw_Gpio, XPAR_BTN_SW_GPIO_DEVICE_ID);
+    	if (Status != XST_SUCCESS) {
+    		xil_printf("Gpio Initialization Failed\r\n");
+    		return XST_FAILURE;
+    	}
+
+    	while(1){
+
+    		//2 CHANNELS BTN_SW_GPIO
+    		btn_data = XGpio_DiscreteRead(&Btn_Sw_Gpio, 1); //reading data from buttons
+    		sw_data = XGpio_DiscreteRead(&Btn_Sw_Gpio, 2); //reading data from switches
+
+    		if(btn_data){ //if button is pressed
+    			 XGpio_DiscreteWrite(&LedGpio, 1, ~sw_data); //one CHANNEL LED_GPIO
+    		}else{
+    			 XGpio_DiscreteWrite(&LedGpio, 1, sw_data); //write switches state
+    		}
+    	}
+
     	/* Set the LED to High */
-        XGpio_DiscreteWrite(&LedGpio, 1, 0x0F);
+       //XGpio_DiscreteWrite(&LedGpio, 1, 0x0F);
 
 
 
