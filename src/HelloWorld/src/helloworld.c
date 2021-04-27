@@ -76,8 +76,8 @@ int main()
        	return XST_FAILURE;
        }
 
-    XGpio_SetDataDirection(&SwBtnGpio, 1, 0x00); //setting switches to inputs
-    XGpio_SetDataDirection(&SwBtnGpio, 2, 0x00); //setting buttons to inputs
+    //XGpio_SetDataDirection(&SwBtnGpio, 1, 0xFF); //setting switches to inputs
+  //  XGpio_SetDataDirection(&SwBtnGpio, 2, 0xFF); //setting buttons to inputs
 
     u32 switchesdata;
     u32 btnsdata;
