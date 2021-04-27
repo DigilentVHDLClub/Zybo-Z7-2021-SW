@@ -17,7 +17,7 @@ set app_name [file tail $script_dir]
 set lang "c"
 set domain "standalone_domain"
 set platform "hw_pf"
-set sysproj "xgpio_example_1_system"
+set sysproj "xgpio_tapp_example_1_system"
 
 # Handle dependent variables
 if {$lang == "c"} {
