@@ -6,3 +6,4 @@
 
 #ignore Packages/ created by Vitis
 /Packages
+digilent-vitis-scripts/
