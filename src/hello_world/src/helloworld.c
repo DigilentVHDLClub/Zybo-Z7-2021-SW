@@ -50,10 +50,41 @@
 #include "xil_printf.h"
 #include "xparameters.h"
 #include "xgpio.h"
+#include <unistd.h>
 
+#define redDutyAddress 0x43C00008
+#define greenDutyAddress 0x43C10008
+#define blueDutyAddress 0x43C200008
+#define redClockDivisionAddress 0x43C00004
+#define greenClockDivisionAddress 0x43C10004
+#define blueClockDivisionAddress 0x43C200004
 
 XGpio LedGpio; /* The Instance of the GPIO Driver */
 XGpio BtnSwGpio; /* The Instance of the GPIO Driver */
+
+void setDutyRed(u32 value){
+	*((uint32_t*)redDutyAddress) = value & 0xFF;
+}
+
+void setDutyGreen(u32 value){
+	*((uint32_t*)greenDutyAddress) = value & 0xFF;
+}
+
+void setDutyBlue(u32 value){
+	*((uint32_t*)blueDutyAddress) = value & 0xFF;
+}
+
+void setClockDivisionRed(u32 value){
+	*((uint32_t*)redClockDivisionAddress) = value & 0xFF;
+}
+
+void setClockDivisionGreen(u32 value){
+	*((uint32_t*)greenClockDivisionAddress) = value & 0xFF;
+}
+
+void setClockDivisionBlue(u32 value){
+	*((uint32_t*)blueClockDivisionAddress) = value & 0xFF;
+}
 
 int main()
 {
@@ -83,6 +114,12 @@ int main()
 		}
 
 	int buttons, switches;
+	int red = 1;
+	int green = 1;
+	int blue = 1;
+	setClockDivisionRed(128);
+	setClockDivisionGreen(128);
+	setClockDivisionBlue(128);
 
 	while(1){
 		buttons = XGpio_DiscreteRead(&BtnSwGpio, 1);
@@ -94,6 +131,17 @@ int main()
 			switches = XGpio_DiscreteRead(&BtnSwGpio, 2);
 			XGpio_DiscreteWrite(&LedGpio, 1, ~switches);
 		}
+		red *= 3;
+		green *= 5;
+		blue *= 7;
+		red = red % 256;
+		green = green % 256;
+		blue = blue % 256;
+		setDutyRed(red);
+		setDutyGreen(green);
+		setDutyBlue(blue);
+		usleep(500000);
+
 	}
 
 
