@@ -52,31 +52,52 @@
 #include "xil_printf.h"
 
 XGpio LedGpio; /* The Instance of the GPIO Driver */
+XGpio BtnSwGpio;
+
+#define BTN_CHANNEL 1
+#define BTN_MASK 0xFu
+#define SW_CHANNEL 2
+#define SW_MASK 0xFu
+#define LED_CHANNEL 1
+#define LED_MASK 0xFu
 
 int main()
 {
+	XStatus Status;
     init_platform();
-    XStatus Status;
 
     print("Hello World\n\r");
-    print("Successfully ran Hello World application");
+    print("Successfully ran Hello World application!");
 
-//    *(uint32_t*)0x41200000 = 0x0u;
-//    *(uint32_t*)0x41200000 = 0xfu;
+    // *(uint32_t*)(0x41200000) = 0x0u;
+    // *(uint32_t*)(0x41200000) = 0xFu;
+
+  /* Initialize the GPIO driver */
+  	Status = XGpio_Initialize(&LedGpio, XPAR_LED_GPIO_DEVICE_ID);
+    if (Status != XST_SUCCESS)
+    {
+    	xil_printf("Gpio Initialization Failed\r\n");
+    	return XST_FAILURE;
+    }
+    XGpio_SetDataDirection(&LedGpio, LED_CHANNEL, ~LED_MASK);
 
     /* Initialize the GPIO driver */
-    	Status = XGpio_Initialize(&LedGpio, XPAR_LED_GPIO_DEVICE_ID);
-    	if (Status != XST_SUCCESS) {
-    		xil_printf("Gpio Initialization Failed\r\n");
-    		return XST_FAILURE;
-    	}
+    Status = XGpio_Initialize(&BtnSwGpio, XPAR_BTN_SW_GPIO_DEVICE_ID);
+    if (Status != XST_SUCCESS)
+        {
+        	xil_printf("Gpio Initialization Failed\r\n");
+        	return XST_FAILURE;
+        }
+    XGpio_SetDataDirection(&BtnSwGpio, BTN_CHANNEL, BTN_MASK);
+    XGpio_SetDataDirection(&BtnSwGpio, SW_CHANNEL, SW_MASK);
 
-
-    	/* Set the LED to High */
-    			XGpio_DiscreteWrite(&LedGpio, 1, 0xff);
-
-
-
+    while (1)
+    {
+    	u32 btn = XGpio_DiscreteRead(&BtnSwGpio, BTN_CHANNEL) & BTN_MASK;
+    	u32 sw = XGpio_DiscreteRead(&BtnSwGpio, SW_CHANNEL) & SW_MASK;
+    	u32 led = (btn ? ~sw : sw) & LED_MASK;
+    	XGpio_DiscreteWrite(&LedGpio, LED_CHANNEL, led);
+    }
 
     cleanup_platform();
     return 0;
