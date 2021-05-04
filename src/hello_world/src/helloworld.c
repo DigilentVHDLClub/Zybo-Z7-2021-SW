@@ -69,19 +69,9 @@ typedef enum {
 XGpio LedGpio;
 XGpio BtnSwGpio;
 
-XGpio RedGpio;
-XGpio GrnGpio;
-XGpio BluGpio;
-
-int red_cnt = 0;
-int blu_cnt = 0;
-int grn_cnt = 0;
-
-uint32_t BTN_CHANN = 1;
-uint32_t SW_CHANN = 2;
-
-uint32_t SW_MASK = 0x0000000Fu;
-uint32_t BTN_MASK = 0x0000000Fu;
+float red_cnt = 0;
+float blu_cnt = 0;
+float grn_cnt = 0;
 
 int prevPressed;
 int inverseFunction;
@@ -122,25 +112,6 @@ int main()
     // ----------------------- BUTTONS & SWITCHES -----------------------
 
 
-    // Holds initialisation status
-    int Status;
-    // Holds value returned from the switches register
-    uint32_t switches;
-    // Holds value returned from the buttons register
-    uint32_t buttons;
-
-    Status = XGpio_Initialize(&LedGpio, XPAR_LED_GPIO_DEVICE_ID);
-	if (Status != XST_SUCCESS) {
-		xil_printf("Gpio Initialization Failed\r\n");
-		return XST_FAILURE;
-	}
-
-	Status = XGpio_Initialize(&BtnSwGpio, XPAR_BTN_SW_GPIO_DEVICE_ID);
-	if (Status != XST_SUCCESS) {
-		xil_printf("BtnSwGpio Initialization Failed\r\n");
-		return XST_FAILURE;
-	}
-
 	// ----------------------- LED PWM -----------------------------
 
 	// Output
@@ -155,34 +126,22 @@ int main()
 
 
     while (1) {
-		switches = XGpio_DiscreteRead(&BtnSwGpio, SW_CHANN) & SW_MASK;
-		buttons = XGpio_DiscreteRead(&BtnSwGpio, BTN_CHANN) & BTN_MASK;
-
-		// Make buttons operate in switch mode
-		if (buttons) {
-			if (!prevPressed) {
-				inverseFunction = !inverseFunction;
-			}
-			prevPressed = 1;
-		} else {
-			prevPressed = 0;
-		}
-
-		// Light the leds up according to input from switches and in
-		// accordance to the state given by the buttons.
-		if (inverseFunction) {
-			XGpio_DiscreteWrite(&LedGpio, 1, ~(switches | 0x0u));
-		} else {
-			XGpio_DiscreteWrite(&LedGpio, 1, switches | 0x0u);
-		}
 
 	// ----------------------- LED PWM -----------------------------
-	setDtyFactor(RED, red_cnt);
-	red_cnt += 1 % 255;
-	setDtyFactor(GRN, grn_cnt);
-	grn_cnt += 2 % 255;
-	setDtyFactor(BLU, blu_cnt);
-	blu_cnt = (int)(blu_cnt + 0.001) % 255;
+	setDtyFactor(RED, (int)(red_cnt) % 255);
+	red_cnt = red_cnt + 0.001;
+	setDtyFactor(GRN, (int)(grn_cnt) % 255);
+	grn_cnt = grn_cnt + 0.0007;
+	setDtyFactor(BLU, (int)(blu_cnt) % 255);
+	blu_cnt = blu_cnt + 0.0001;
+
+	if (red_cnt > 255) {
+		red_cnt = 0;
+	} else if (grn_cnt > 255) {
+		grn_cnt = 0;
+	} else if (blu_cnt > 255) {
+		blu_cnt = 0;
+	}
 
 
 
