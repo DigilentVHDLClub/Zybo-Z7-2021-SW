@@ -52,22 +52,62 @@
 #include "xgpio.h"
 
 XGpio LedGpio;
+XGpio BtnSwGpio;
+
+uint32_t BTN_CHANN = 1;
+uint32_t SW_CHANN = 2;
+
+uint32_t SW_MASK = 0x0000000Fu;
+uint32_t BTN_MASK = 0x0000000Fu;
+
+int prevPressed;
+int inverseFunction;
 
 int main()
 {
     init_platform();
+    // Holds initialisation status
     int Status;
-
-    print("Hello World\n\r");
-	print("Successfully ran Hello World application");
+    // Holds value returned from the switches register
+    uint32_t switches;
+    // Holds value returned from the buttons register
+    uint32_t buttons;
 
     Status = XGpio_Initialize(&LedGpio, XPAR_LED_GPIO_DEVICE_ID);
-    	if (Status != XST_SUCCESS) {
-    		xil_printf("Gpio Initialization Failed\r\n");
-    		return XST_FAILURE;
+	if (Status != XST_SUCCESS) {
+		xil_printf("Gpio Initialization Failed\r\n");
+		return XST_FAILURE;
 	}
 
-	XGpio_DiscreteWrite(&LedGpio, 1, 0x0);
+	Status = XGpio_Initialize(&BtnSwGpio, XPAR_BTN_SW_GPIO_DEVICE_ID);
+	if (Status != XST_SUCCESS) {
+		xil_printf("BtnSwGpio Initialization Failed\r\n");
+		return XST_FAILURE;
+	}
+
+    print("Hello World\n\r");
+	print("Successfully started LEDs and switches application");
+
+
+    while (1) {
+		switches = XGpio_DiscreteRead(&BtnSwGpio, SW_CHANN) & SW_MASK;
+		buttons = XGpio_DiscreteRead(&BtnSwGpio, BTN_CHANN) & BTN_MASK;
+
+		if (buttons) {
+			if (!prevPressed) {
+				inverseFunction = !inverseFunction;
+			}
+			prevPressed = 1;
+		} else {
+			prevPressed = 0;
+		}
+
+		if (inverseFunction) {
+			XGpio_DiscreteWrite(&LedGpio, 1, ~(switches | 0x0u));
+		} else {
+			XGpio_DiscreteWrite(&LedGpio, 1, switches | 0x0u);
+		}
+    }
 
     cleanup_platform();
     return 0;
