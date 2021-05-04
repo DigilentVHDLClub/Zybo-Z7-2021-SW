@@ -51,8 +51,31 @@
 #include "xparameters.h"
 #include "xgpio.h"
 
+#define RED_DIV 0x43C00004
+#define RED_DTY 0x43C00008
+
+#define GRN_DIV 0x43C10004
+#define GRN_DTY 0x43C10008
+
+#define BLU_DIV 0x43C20004
+#define BLU_DTY 0x43C20008
+
+typedef enum {
+	RED,
+	GRN,
+	BLU
+} Color;
+
 XGpio LedGpio;
 XGpio BtnSwGpio;
+
+XGpio RedGpio;
+XGpio GrnGpio;
+XGpio BluGpio;
+
+int red_cnt = 0;
+int blu_cnt = 0;
+int grn_cnt = 0;
 
 uint32_t BTN_CHANN = 1;
 uint32_t SW_CHANN = 2;
@@ -63,9 +86,42 @@ uint32_t BTN_MASK = 0x0000000Fu;
 int prevPressed;
 int inverseFunction;
 
+void setDivider(Color color, uint32_t value) {
+	switch(color) {
+	case RED:
+		*(uint32_t*)(RED_DIV) = value;
+		break;
+	case BLU:
+		*(uint32_t*)(GRN_DIV) = value;
+		break;
+	case GRN:
+		*(uint32_t*)(BLU_DIV) = value;
+		break;
+	}
+}
+
+void setDtyFactor(Color color, uint32_t value) {
+	switch(color) {
+	case RED:
+		*(uint32_t*)(RED_DTY) = value;
+		break;
+	case BLU:
+		*(uint32_t*)(GRN_DTY) = value;
+		break;
+	case GRN:
+		*(uint32_t*)(BLU_DTY) = value;
+		break;
+	}
+}
+
 int main()
 {
     init_platform();
+
+
+    // ----------------------- BUTTONS & SWITCHES -----------------------
+
+
     // Holds initialisation status
     int Status;
     // Holds value returned from the switches register
@@ -85,7 +141,16 @@ int main()
 		return XST_FAILURE;
 	}
 
-    print("Hello World\n\r");
+	// ----------------------- LED PWM -----------------------------
+
+	// Output
+	setDivider(RED, 255);
+	setDivider(GRN, 255);
+	setDivider(BLU, 255);
+
+	// ----------------------- LED PWM - END -----------------------
+
+	print("Hello World\n\r");
 	print("Successfully started LEDs and switches application");
 
 
@@ -93,6 +158,7 @@ int main()
 		switches = XGpio_DiscreteRead(&BtnSwGpio, SW_CHANN) & SW_MASK;
 		buttons = XGpio_DiscreteRead(&BtnSwGpio, BTN_CHANN) & BTN_MASK;
 
+		// Make buttons operate in switch mode
 		if (buttons) {
 			if (!prevPressed) {
 				inverseFunction = !inverseFunction;
@@ -102,11 +168,27 @@ int main()
 			prevPressed = 0;
 		}
 
+		// Light the leds up according to input from switches and in
+		// accordance to the state given by the buttons.
 		if (inverseFunction) {
 			XGpio_DiscreteWrite(&LedGpio, 1, ~(switches | 0x0u));
 		} else {
 			XGpio_DiscreteWrite(&LedGpio, 1, switches | 0x0u);
 		}
+
+	// ----------------------- LED PWM -----------------------------
+	setDtyFactor(RED, red_cnt);
+	red_cnt += 1 % 255;
+	setDtyFactor(GRN, grn_cnt);
+	grn_cnt += 2 % 255;
+	setDtyFactor(BLU, blu_cnt);
+	blu_cnt = (int)(blu_cnt + 0.001) % 255;
+
+
+
+	// ----------------------- LED PWM - END -----------------------
+
+
     }
 
     cleanup_platform();
