@@ -48,28 +48,107 @@
 #include <stdio.h>
 #include "platform.h"
 #include "xil_printf.h"
-#include "xgpio.h"
 #include "xparameters.h"
+#include "xgpio.h"
 
+#define RED_DIV 0x43C00004
+#define RED_DTY 0x43C00008
 
+#define GRN_DIV 0x43C10004
+#define GRN_DTY 0x43C10008
+
+#define BLU_DIV 0x43C20004
+#define BLU_DTY 0x43C20008
+
+typedef enum {
+	RED,
+	GRN,
+	BLU
+} Color;
 
 XGpio LedGpio;
+XGpio BtnSwGpio;
+
+float red_cnt = 0;
+float blu_cnt = 0;
+float grn_cnt = 0;
+
+int prevPressed;
+int inverseFunction;
+
+void setDivider(Color color, uint32_t value) {
+	switch(color) {
+	case RED:
+		*(uint32_t*)(RED_DIV) = value;
+		break;
+	case BLU:
+		*(uint32_t*)(GRN_DIV) = value;
+		break;
+	case GRN:
+		*(uint32_t*)(BLU_DIV) = value;
+		break;
+	}
+}
+
+void setDtyFactor(Color color, uint32_t value) {
+	switch(color) {
+	case RED:
+		*(uint32_t*)(RED_DTY) = value;
+		break;
+	case BLU:
+		*(uint32_t*)(GRN_DTY) = value;
+		break;
+	case GRN:
+		*(uint32_t*)(BLU_DTY) = value;
+		break;
+	}
+}
+
 int main()
 {
-	XStatus Status;
     init_platform();
 
-    print("Hello World\n\r");
-    print("Successfully ran Hello World application\n\r");
 
-    Status = XGpio_Initialize(&LedGpio, XPAR_GPIO_1_DEVICE_ID);
-    	if (Status != XST_SUCCESS) {
-    		xil_printf("Gpio Initialization Failed\r\n");
-    		return XST_FAILURE;
-    	}
+    // ----------------------- BUTTONS & SWITCHES -----------------------
 
 
-    	XGpio_DiscreteWrite(&LedGpio, 1, 0x0F);
+	// ----------------------- LED PWM -----------------------------
+
+	// Output
+	setDivider(RED, 255);
+	setDivider(GRN, 255);
+	setDivider(BLU, 255);
+
+	// ----------------------- LED PWM - END -----------------------
+
+	print("Hello World\n\r");
+	print("Successfully started LEDs and switches application");
+
+
+    while (1) {
+
+	// ----------------------- LED PWM -----------------------------
+	setDtyFactor(RED, (int)(red_cnt) % 255);
+	red_cnt = red_cnt + 0.001;
+	setDtyFactor(GRN, (int)(grn_cnt) % 255);
+	grn_cnt = grn_cnt + 0.0007;
+	setDtyFactor(BLU, (int)(blu_cnt) % 255);
+	blu_cnt = blu_cnt + 0.0001;
+
+	if (red_cnt > 255) {
+		red_cnt = 0;
+	} else if (grn_cnt > 255) {
+		grn_cnt = 0;
+	} else if (blu_cnt > 255) {
+		blu_cnt = 0;
+	}
+
+
+
+	// ----------------------- LED PWM - END -----------------------
+
+
+    }
 
     cleanup_platform();
     return 0;
